@@ -33,6 +33,16 @@
         sun.target.position.set(-5, 0, 0);
         sun.add(light);
         sun.add(light.target);
+
+        function deltaTime() {
+            var img = getElementById('image');
+            var angle = 30 * Math.PI/180;
+            var time = 15;
+            var top = -5, bottom = 0;
+            var deltaX = Math.cos(angle) * time;
+            var deltaY = Math.sin(angle) * time;
+            img.style.top = (top += deltaY);
+        }
     </script>
 </body>
 </html>
