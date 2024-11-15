@@ -13,7 +13,7 @@
 
         var scene = new THREE.Scene();
         var camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, .1, 3000);
-        camera.position.set(0, 100, 200); 
+        camera.position.set(0, 10, 50); 
         camera.lookAt(new THREE.Vector3(0.0,0.0,0.0));
         scene.add(camera);
 
@@ -69,6 +69,39 @@
         directionalLight.position.set(100, 200, 100); // position light above 
         scene.add(directionalLight);
 
+        // Moving directions
+        const speed = 0.5; // Walking speed
+        let isMovingForward = false;
+        let isMovingBackward = false;
+        let isMovingLeft = false;
+        let isMovingRight = false;
+
+        function updateCameraPosition() {
+            if (isMovingForward) camera.position.z -= speed;
+            if (isMovingBackward) camera.position.z += speed;
+            if (isMovingLeft) camera.position.x -= speed;
+            if (isMovingRight) camera.position.x += speed;
+
+            const terrainHeight = generateTerrain(camera.position.x, camera.position.z);
+         
+        }
+
+        // Turn key to true when pressed down
+        window.addEventListener("keydown", (event) => {
+            if (event.key === "w") isMovingForward = true;
+            if (event.key === "s") isMovingBackward = true;
+            if (event.key === "a") isMovingLeft = true;
+            if (event.key === "d") isMovingRight = true;
+        });
+
+        // Turn key to false when pressed up
+        window.addEventListener("keyup", (event) => {
+            if (event.key === "w") isMovingForward = false;
+            if (event.key === "s") isMovingBackward = false;
+            if (event.key === "a") isMovingLeft = false;
+            if (event.key === "d") isMovingRight = false;
+        });
+
         // Code for Sun
         const color = 0xFFFFFF;
         const intensity = 1;
@@ -91,6 +124,8 @@
         function animate() {
             requestAnimationFrame(animate);
 
+            updateCameraPosition();
+            
             renderer.render(scene, camera); // render the scene and camera
         }
 
