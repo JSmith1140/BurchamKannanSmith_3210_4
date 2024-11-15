@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Three.js Framework Example</title>
+    <title>BurchamKannanSmith_3210_4</title>
+    <script src="https://cdn.jsdelivr.net/gh/josephg/noisejs/perlin.js"></script>
 </head>
 <body>
 
@@ -11,28 +12,71 @@
         import * as THREE from 'three';
 
         var scene = new THREE.Scene();
-
-        var camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, .1, 3000 );
-        camera.position.z = 100;  
-        camera.lookAt( new THREE.Vector3(0.0,0.0,0.0));
-        scene.add( camera );
+        var camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, .1, 3000);
+        camera.position.set(0, 100, 200); 
+        camera.lookAt(new THREE.Vector3(0.0,0.0,0.0));
+        scene.add(camera);
 
         var renderer = new THREE.WebGLRenderer({canvas: myCanvas, antialias: true});
-        renderer.setClearColor(0x000000);
+        renderer.setClearColor(0x87CEEB);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
 
-        /* CREATE/DRAW STUFF HERE */
+        // Initialize Perlin Noise
+        noise.seed(Math.random());
 
-        renderer.render( scene, camera );
+        // Terrain dimensions
+        const terrainWidth = 500;
+        const terrainHeight = 500;
+        const terrainSegments = 200;
+        const terrainScale = 10;
 
+        // Function to generate terrain using Perlin noise
+        function generateTerrain() {
+            const geometry = new THREE.PlaneGeometry(terrainWidth, terrainHeight, terrainSegments, terrainSegments);
+            geometry.rotateX(-Math.PI / 2); // Rotate terrain
+
+            // Apply Perlin noise to each vertex
+            for (let i = 0; i < geometry.attributes.position.count; i++) {
+                const x = geometry.attributes.position.getX(i);
+                const z = geometry.attributes.position.getZ(i);
+
+                // Use Perlin noise to alter the height based on x and z coordinates
+                const noiseValue = noise.perlin2(x / terrainScale, z / terrainScale); 
+                const height = noiseValue * 20; 
+
+                geometry.attributes.position.setY(i, height);
+            }
+            geometry.computeVertexNormals();
+
+             return geometry;
+         }
+
+        // Create the terrain mesh
+        const terrainGeometry = generateTerrain();
+        const terrainMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0xFFFFFF, // Set color to white
+        });
+        const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
+        scene.add(terrain);
+
+        // Add Ambient Light to the scene
+        const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1); // white ambient light
+        scene.add(ambientLight);
+
+        // Add Directional Light to the scene
+        const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1); // white directional light
+        directionalLight.position.set(100, 200, 100); // position light above 
+        scene.add(directionalLight);
+
+        // Code for Sun
         const color = 0xFFFFFF;
         const intensity = 1;
         const sun = new THREE.DirectionalLight(color, intensity);
         sun.position.set(0, 10, 0);
         sun.target.position.set(-5, 0, 0);
-        sun.add(light);
-        sun.add(light.target);
+        scene.add(sun); // Add sun to the scene
+        scene.add(sun.target); // Add the light target to the scene as well if needed
 
         function deltaTime() {
             var img = getElementById('image');
@@ -43,6 +87,15 @@
             var deltaY = Math.sin(angle) * time;
             img.style.top = (top += deltaY);
         }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            renderer.render(scene, camera); // render the scene and camera
+        }
+
+        animate(); // call animate function
+
     </script>
 </body>
 </html>
