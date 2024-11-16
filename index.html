@@ -13,7 +13,7 @@
 
         var scene = new THREE.Scene();
         var camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, .1, 3000);
-        camera.position.set(0, 10, 50); 
+        camera.position.set(0, 20, 50); 
         camera.lookAt(new THREE.Vector3(0.0,0.0,0.0));
         scene.add(camera);
 
@@ -43,7 +43,7 @@
 
                 // Use Perlin noise to alter the height based on x and z coordinates
                 const noiseValue = noise.perlin2(x / terrainScale, z / terrainScale); 
-                const height = noiseValue * 20; 
+                const height = noiseValue * 10; 
 
                 geometry.attributes.position.setY(i, height);
             }
@@ -52,13 +52,19 @@
              return geometry;
          }
 
-        // Create the terrain mesh
+        const textureLoader = new THREE.TextureLoader();
+        const terrainTexture = textureLoader.load('GrassTexture.jpg'); // GrassTexture jpg for terrain
+        terrainTexture.wrapS = terrainTexture.wrapT = THREE.RepeatWrapping; 
+        terrainTexture.repeat.set(10, 10); 
+
+        // Create terrain mesh
         const terrainGeometry = generateTerrain();
         const terrainMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0xFFFFFF, // Set color to white
+            map: terrainTexture, 
+            flatShading: true,
         });
         const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
-        scene.add(terrain);
+        scene.add(terrain); // add terrain to scene
 
         // Add Ambient Light to the scene
         const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1); // white ambient light
@@ -134,3 +140,4 @@
     </script>
 </body>
 </html>
+
