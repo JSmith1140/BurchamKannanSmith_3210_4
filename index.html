@@ -13,7 +13,7 @@
 
         var scene = new THREE.Scene();
         var camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, .1, 3000);
-        camera.position.set(0, 20, 50); 
+        camera.position.set(0, 20, 100); 
         camera.lookAt(new THREE.Vector3(0.0,0.0,0.0));
         scene.add(camera);
 
@@ -43,7 +43,7 @@
 
                 // Use Perlin noise to alter the height based on x and z coordinates
                 const noiseValue = noise.perlin2(x / terrainScale, z / terrainScale); 
-                const height = noiseValue * 10; 
+                const height = noiseValue * terrainScale; 
 
                 geometry.attributes.position.setY(i, height);
             }
@@ -51,6 +51,14 @@
 
              return geometry;
          }
+
+        // Finds terrain height for the camera bumpy effect
+        function getterrainBump(x, z) {
+            const noiseX = x / terrainScale;
+            const noiseZ = z / terrainScale;
+            return noise.perlin2(noiseX, noiseZ) * terrainScale;
+        }
+
 
         const textureLoader = new THREE.TextureLoader();
         const terrainTexture = textureLoader.load('GrassTexture.jpg'); // GrassTexture jpg for terrain
@@ -88,7 +96,10 @@
             if (isMovingLeft) camera.position.x -= speed;
             if (isMovingRight) camera.position.x += speed;
 
-            const terrainHeight = generateTerrain(camera.position.x, camera.position.z);
+            // moves camera up and down based on terrain height
+            const terrainHeight = getterrainBump(camera.position.x, camera.position.z);
+
+            camera.position.y = terrainHeight + 25; // camera is higher up to emulate a person
          
         }
 
@@ -136,8 +147,6 @@
         }
 
         animate(); // call animate function
-
     </script>
 </body>
 </html>
-
