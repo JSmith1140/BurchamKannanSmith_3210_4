@@ -129,13 +129,18 @@
         scene.add(sun.target); // Add the light target to the scene as well if needed
 
         function deltaTime() {
-            var img = getElementById('image');
             var angle = 30 * Math.PI/180;
-            var time = 15;
-            var top = -5, bottom = 0;
-            var deltaX = Math.cos(angle) * time;
-            var deltaY = Math.sin(angle) * time;
-            img.style.top = (top += deltaY);
+            var time = 0.01;
+            var deltaX = sun.position.x + Math.cos(angle) * time;
+            var deltaY = sun.position.y + Math.sin(angle) * time;
+            sun.position.set(deltaX, deltaY, sun.position.z);
+
+            var cycle = (deltaY + 15)/20;
+            var sunColor = new THREE.Color();
+            color.setHSL(0.1 * cycle, 1, 0.5);
+            sun.sunColor = sunColor;
+
+            requestAnimationFrame(deltaTime);
         }
 
         function animate() {
