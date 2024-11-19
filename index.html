@@ -59,7 +59,7 @@
             return noise.perlin2(noiseX, noiseZ) * terrainScale;
         }
 
-
+        // Create the Texture for terrain
         const textureLoader = new THREE.TextureLoader();
         const terrainTexture = textureLoader.load('GrassTexture.jpg'); // GrassTexture jpg for terrain
         terrainTexture.wrapS = terrainTexture.wrapT = THREE.RepeatWrapping; 
@@ -78,10 +78,15 @@
         const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1); // white ambient light
         scene.add(ambientLight);
 
-        // Add Directional Light to the scene
-        const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1); // white directional light
-        directionalLight.position.set(100, 200, 100); // position light above 
-        scene.add(directionalLight);
+        // Spotlight for User Flashlight
+        const flashlightColor = 0xFFFF00; // yellow color for Flashlight
+        const flashlightIntensity = 10000;
+        const flashlight = new THREE.SpotLight(flashlightColor, flashlightIntensity);
+        flashlight.position.set(camera.position.x, camera.position.y, camera.position.z);
+        flashlight.distance = 200; // flashlight distance
+        flashlight.angle = Math.PI / 6; // flashlight angle for flashlight circle 
+        flashlight.penumbra = 0.5; // keeps the edges of flashlight circle softer
+        scene.add(flashlight);
 
         // Moving directions
         const speed = 0.5; // Walking speed
@@ -100,7 +105,15 @@
             const terrainHeight = getterrainBump(camera.position.x, camera.position.z);
 
             camera.position.y = terrainHeight + 25; // camera is higher up to emulate a person
-         
+
+            // copy flashlight position to camera position every frame
+            flashlight.position.copy(camera.position);
+            flashlight.target.position.set(
+                camera.position.x + camera.getWorldDirection(new THREE.Vector3()).x * 10,
+                camera.position.y - 5,
+                camera.position.z + camera.getWorldDirection(new THREE.Vector3()).z * 10
+            );
+            flashlight.target.updateMatrixWorld();
         }
 
         // Turn key to true when pressed down
@@ -117,11 +130,27 @@
             if (event.key === "s") isMovingBackward = false;
             if (event.key === "a") isMovingLeft = false;
             if (event.key === "d") isMovingRight = false;
+            if (event.key === "f") {
+                flashlightOn = !flashlightOn; // Toggle flashlight
+                flashlight.visible = flashlightOn;
+            }
         });
+
+        flashlight.visible = false; // start with flashlight off
+        let flashlightOn = false;
+        // Key handler function
+        function keyhandler(e) {
+            switch (e.keyCode) { 
+                case 70: // 'F' Key
+                        flashlightOn = !flashlightOn; // Toggle flashlight
+                        flashlight.visible = flashlightOn; 
+                    break;
+            }
+        }
 
         // Code for Sun
         const color = 0xFFFFFF;
-        const intensity = 1;
+        const intensity = 3;
         const sun = new THREE.DirectionalLight(color, intensity);
         sun.position.set(0, 10, 0);
         sun.target.position.set(-5, 0, 0);
