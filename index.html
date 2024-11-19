@@ -94,27 +94,63 @@
         let isMovingBackward = false;
         let isMovingLeft = false;
         let isMovingRight = false;
+let rotationSpeed = 0.002; // Adjust this for sensitivity
 
-        function updateCameraPosition() {
-            if (isMovingForward) camera.position.z -= speed;
-            if (isMovingBackward) camera.position.z += speed;
-            if (isMovingLeft) camera.position.x -= speed;
-            if (isMovingRight) camera.position.x += speed;
+       let yaw = 0; // Horizontal rotation (left/right) 
+        let pitch = 0; // Vertical rotation (up/down)
+        const canvas = document.getElementById('myCanvas');
+canvas.addEventListener('click', () => {
+    canvas.requestPointerLock();
+});
+document.addEventListener("mousemove", (event) => {
+    if (document.pointerLockElement === canvas) { // Ensure pointer lock is active
+        yaw -= event.movementX * rotationSpeed;
+        pitch -= event.movementY * rotationSpeed;
 
-            // moves camera up and down based on terrain height
-            const terrainHeight = getterrainBump(camera.position.x, camera.position.z);
+        // Clamp pitch to prevent flipping the camera
+        pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
 
-            camera.position.y = terrainHeight + 25; // camera is higher up to emulate a person
+        const lookDirection = new THREE.Vector3(
+            Math.sin(yaw) * Math.cos(pitch),
+            Math.sin(pitch),
+            Math.cos(yaw) * Math.cos(pitch)
+        );
+        camera.lookAt(camera.position.clone().add(lookDirection));
+    }
+});
+// Ensure camera moves and updates correctly
+function updateCameraPosition() {
+    if (isMovingForward) {
+        camera.position.x += Math.sin(yaw) * speed;
+        camera.position.z += Math.cos(yaw) * speed;
+    }
+    if (isMovingBackward) {
+        camera.position.x -= Math.sin(yaw) * speed;
+        camera.position.z -= Math.cos(yaw) * speed;
+    }
+    if (isMovingLeft) {
+        camera.position.x += Math.cos(yaw) * speed;
+        camera.position.z -= Math.sin(yaw) * speed;
+    }
+    if (isMovingRight) {
+        camera.position.x -= Math.cos(yaw) * speed;
+        camera.position.z += Math.sin(yaw) * speed;
+    }
 
-            // copy flashlight position to camera position every frame
-            flashlight.position.copy(camera.position);
-            flashlight.target.position.set(
-                camera.position.x + camera.getWorldDirection(new THREE.Vector3()).x * 10,
-                camera.position.y - 5,
-                camera.position.z + camera.getWorldDirection(new THREE.Vector3()).z * 10
-            );
-            flashlight.target.updateMatrixWorld();
-        }
+    // Adjust camera height based on terrain
+    const terrainHeight = getterrainBump(camera.position.x, camera.position.z);
+    camera.position.y = terrainHeight + 25; // Keep the camera at an appropriate height
+
+    // Copy flashlight position to the camera
+    flashlight.position.copy(camera.position);
+    flashlight.target.position.set(
+        camera.position.x + camera.getWorldDirection(new THREE.Vector3()).x * 10,
+        camera.position.y - 5,
+        camera.position.z + camera.getWorldDirection(new THREE.Vector3()).z * 10
+    );
+    flashlight.target.updateMatrixWorld();
+}
+
 
         // Turn key to true when pressed down
         window.addEventListener("keydown", (event) => {
