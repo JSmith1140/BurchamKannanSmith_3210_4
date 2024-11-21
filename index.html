@@ -75,290 +75,315 @@
         scene.add(terrain); // add terrain to scene
 
         function createBranch(level, maxLevel, parentHeight) {
-    if (level > maxLevel) return null;
+        if (level > maxLevel) return null;
 
-    const branchHeight = 10 + Math.random() * 3; // Define branch length
-    const branchRadius = 2 + Math.random() * 0.2; // Define branch thickness
-    const branchGeometry = new THREE.CylinderGeometry(branchRadius, branchRadius * 0.8, branchHeight, 12);
-    const branchMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-    const branchMesh = new THREE.Mesh(branchGeometry, branchMaterial);
+        const branchHeight = 10 + Math.random() * 3; // Define branch length
+        const branchRadius = 2 + Math.random() * 0.2; // Define branch thickness
+        const branchGeometry = new THREE.CylinderGeometry(branchRadius, branchRadius * 0.8, branchHeight, 12);
+        const branchMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+        const branchMesh = new THREE.Mesh(branchGeometry, branchMaterial);
 
-    // Position and rotate the branch to connect it to its parent
-    branchMesh.position.y = parentHeight / 2; // Position at parent's tip
-    branchMesh.rotation.x = Math.random() * Math.PI / 3 - Math.PI / 6; // Slight upward/downward tilt
-    branchMesh.rotation.z = Math.random() * Math.PI / 2 - Math.PI / 4; // Sideways rotation for variation
+        // Position and rotate the branch to connect it to its parent
+        branchMesh.position.y = parentHeight / 2; // Position at parent's tip
+        branchMesh.rotation.x = Math.random() * Math.PI / 3 - Math.PI / 6; // Slight upward/downward tilt
+        branchMesh.rotation.z = Math.random() * Math.PI / 2 - Math.PI / 4; // Sideways rotation for variation
 
-    // Add leaves to the branches
-    addLeaves(branchMesh);
+        // Add leaves to the branches
+        addLeaves(branchMesh);
 
-    // Create a group to hold this branch and any child
-    const group = new THREE.Group();
-    group.add(branchMesh);
+        // Create a group to hold this branch and any child
+        const group = new THREE.Group();
+        group.add(branchMesh);
 
-    // Optionally add a child branch
-    if (level < maxLevel && Math.random() < 0.8) { // 80% chance of creating a child
-        const childBranch = createBranch(level + 1, maxLevel, branchHeight);
-        if (childBranch) {
-            childBranch.position.y = branchHeight; // Position child at the tip of this branch
-            group.add(childBranch);
+        // Optionally add a child branch
+        if (level < maxLevel && Math.random() < 0.8) { // 80% chance of creating a child
+            const childBranch = createBranch(level + 1, maxLevel, branchHeight);
+            if (childBranch) {
+                childBranch.position.y = branchHeight; // Position child at the tip of this branch
+                group.add(childBranch);
+            }
+        }
+
+        return group;
+    }
+
+    function addLeaves(branch) {
+        const leafGeometry = new THREE.CylinderGeometry(2, 2, 5, 8);
+        const leafMaterial = new THREE.MeshStandardMaterial({ color: 0x228B22 }); // Green color
+        const leafCount = 3 + Math.floor(Math.random() * 4); // Random number of leaves per branch
+
+        for (let i = 0; i < leafCount; i++) {
+            // Create leaf mesh
+            const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+
+            // Position leaves randomly near the tip of the branch
+            const branchTip = branch.position.clone().add(new THREE.Vector3(0, branch.geometry.parameters.height / 2, 0));
+            leaf.position.copy(branchTip);
+            leaf.position.x += (Math.random() - 0.5) * 5; 
+            leaf.position.z += (Math.random() - 0.5) * 5; 
+            leaf.position.y += Math.random() * 3; 
+
+            // Add leaf to the branch
+            branch.add(leaf);
         }
     }
 
-    return group;
-}
+    function createTreeWithHierarchicalBranches() {
+        const trunkHeight = 10 + Math.random() * 5; // Define trunk height
+        const trunkGeometry = new THREE.CylinderGeometry(0.8, 1.2, trunkHeight, 12);
+        const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+        const trunkMesh = new THREE.Mesh(trunkGeometry, trunkMaterial);
 
-function addLeaves(branch) {
-    const leafGeometry = new THREE.CylinderGeometry(2, 2, 5, 8);
-    const leafMaterial = new THREE.MeshStandardMaterial({ color: 0x228B22 }); // Green color
-    const leafCount = 3 + Math.floor(Math.random() * 4); // Random number of leaves per branch
+        const branches = new THREE.Group();
 
-    for (let i = 0; i < leafCount; i++) {
-        // Create leaf mesh
-        const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+        // Add primary branches directly to the trunk
+        const branchCount = 5 + Math.floor(Math.random() * 3); // 5-7 primary branches
+        const branchLevels = 4; // Depth of branching
 
-        // Position leaves randomly near the tip of the branch
-        const branchTip = branch.position.clone().add(new THREE.Vector3(0, branch.geometry.parameters.height / 2, 0));
-        leaf.position.copy(branchTip);
-        leaf.position.x += (Math.random() - 0.5) * 5; 
-        leaf.position.z += (Math.random() - 0.5) * 5; 
-        leaf.position.y += Math.random() * 3; 
-
-        // Add leaf to the branch
-        branch.add(leaf);
-    }
-}
-
-function createTreeWithHierarchicalBranches() {
-    const trunkHeight = 10 + Math.random() * 5; // Define trunk height
-    const trunkGeometry = new THREE.CylinderGeometry(0.8, 1.2, trunkHeight, 12);
-    const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-    const trunkMesh = new THREE.Mesh(trunkGeometry, trunkMaterial);
-
-    const branches = new THREE.Group();
-
-    // Add primary branches directly to the trunk
-    const branchCount = 5 + Math.floor(Math.random() * 3); // 5-7 primary branches
-    const branchLevels = 4; // Depth of branching
-
-    for (let i = 0; i < branchCount; i++) {
-        const mainBranch = createBranch(1, branchLevels, trunkHeight * (0.7 + Math.random() * 0.2)); // Attach to the top half of the trunk
-        if (mainBranch) {
-            branches.add(mainBranch);
+        for (let i = 0; i < branchCount; i++) {
+            const mainBranch = createBranch(1, branchLevels, trunkHeight * (0.7 + Math.random() * 0.2)); // Attach to the top half of the trunk
+            if (mainBranch) {
+                branches.add(mainBranch);
+            }
         }
+
+        const tree = new THREE.Group();
+        tree.add(trunkMesh);
+        tree.add(branches);
+
+        return tree;
     }
 
-    const tree = new THREE.Group();
-    tree.add(trunkMesh);
-    tree.add(branches);
+    function createComplexTree() {
+        const trunkHeight = 10 + Math.random() * 5; // Main trunk height
+        const trunk = new THREE.CylinderGeometry(0.8, 1.2, trunkHeight, 12);
+        const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+        const trunkMesh = new THREE.Mesh(trunk, trunkMaterial);
 
-    return tree;
-}
+        const branches = new THREE.Group();
 
+        // Add main branches directly to the trunk
+        const branchLevels = 5; // Increase branching levels for more complexity
+        const branchCount = 4 + Math.floor(Math.random() * 3); // 4-6 main branches
 
-
-
-function createComplexTree() {
-    const trunkHeight = 10 + Math.random() * 5; // Main trunk height
-    const trunk = new THREE.CylinderGeometry(0.8, 1.2, trunkHeight, 12);
-    const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-    const trunkMesh = new THREE.Mesh(trunk, trunkMaterial);
-
-    const branches = new THREE.Group();
-
-    // Add main branches directly to the trunk
-    const branchLevels = 5; // Increase branching levels for more complexity
-    const branchCount = 4 + Math.floor(Math.random() * 3); // 4-6 main branches
-
-    for (let i = 0; i < branchCount; i++) {
-        const branch = createBranch(1, branchLevels, trunkHeight * (0.6 + Math.random() * 0.3)); // Start higher on the trunk
-        if (branch) {
-            branches.add(branch);
+        for (let i = 0; i < branchCount; i++) {
+            const branch = createBranch(1, branchLevels, trunkHeight * (0.6 + Math.random() * 0.3)); // Start higher on the trunk
+            if (branch) {
+                branches.add(branch);
+            }
         }
+
+        const tree = new THREE.Group();
+        tree.add(trunkMesh);
+        tree.add(branches);
+
+        return tree;
     }
 
-    const tree = new THREE.Group();
-    tree.add(trunkMesh);
-    tree.add(branches);
+    function createStaticTree() {
+        const trunk = new THREE.CylinderGeometry(0.5, 0.5, 10, 8);
+        const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+        const trunkMesh = new THREE.Mesh(trunk, trunkMaterial);
 
-    return tree;
-}
-function createStaticTree() {
-    const trunk = new THREE.CylinderGeometry(0.5, 0.5, 10, 8);
-    const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-    const trunkMesh = new THREE.Mesh(trunk, trunkMaterial);
+        const foliage = new THREE.ConeGeometry(3, 10, 8);
+        const foliageMaterial = new THREE.MeshStandardMaterial({ color: 0x228B22 });
+        const foliageMesh = new THREE.Mesh(foliage, foliageMaterial);
+        foliageMesh.position.y = 8;
 
-    const foliage = new THREE.ConeGeometry(3, 10, 8);
-    const foliageMaterial = new THREE.MeshStandardMaterial({ color: 0x228B22 });
-    const foliageMesh = new THREE.Mesh(foliage, foliageMaterial);
-    foliageMesh.position.y = 8;
+        const tree = new THREE.Group();
+        tree.add(trunkMesh);
+        tree.add(foliageMesh);
+        return tree;
+    }
 
-    const tree = new THREE.Group();
-    tree.add(trunkMesh);
-    tree.add(foliageMesh);
-    return tree;
-}
+    function createStochasticTreeType1() {
+        const trunkHeight = 8 + Math.random() * 4; // Slightly shorter trunk
+        const trunk = new THREE.CylinderGeometry(0.6, 0.8, trunkHeight, 10);
+        const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+        const trunkMesh = new THREE.Mesh(trunk, trunkMaterial);
 
-function createStochasticTreeType1() {
-    const trunkHeight = 8 + Math.random() * 4; // Slightly shorter trunk
-    const trunk = new THREE.CylinderGeometry(0.6, 0.8, trunkHeight, 10);
-    const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-    const trunkMesh = new THREE.Mesh(trunk, trunkMaterial);
+        const branches = new THREE.Group();
+        const branchLevels = 4; // Increase levels to add complexity
+        const branchCount = 6 + Math.floor(Math.random() * 3); // 6-8 main branches
 
-    const branches = new THREE.Group();
-    const branchLevels = 4; // Increase levels to add complexity
-    const branchCount = 6 + Math.floor(Math.random() * 3); // 6-8 main branches
-
-    for (let i = 0; i < branchCount; i++) {
-        const branch = createBranch(1, branchLevels, trunkHeight * (0.5 + Math.random() * 0.4)); // Attach near the middle/top of trunk
-        if (branch) {
-            branches.add(branch);
+        for (let i = 0; i < branchCount; i++) {
+            const branch = createBranch(1, branchLevels, trunkHeight * (0.5 + Math.random() * 0.4)); // Attach near the middle/top of trunk
+            if (branch) {
+                branches.add(branch);
+            }
         }
+
+        const tree = new THREE.Group();
+        tree.add(trunkMesh);
+        tree.add(branches);
+        return tree;
     }
 
-    const tree = new THREE.Group();
-    tree.add(trunkMesh);
-    tree.add(branches);
-    return tree;
-}
+    function createStochasticTreeType2() {
+        const trunkHeight = 10 + Math.random() * 6; // Slightly taller trunk
+        const trunk = new THREE.CylinderGeometry(0.8, 1, trunkHeight, 12);
+        const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+        const trunkMesh = new THREE.Mesh(trunk, trunkMaterial);
 
-function createStochasticTreeType2() {
-    const trunkHeight = 10 + Math.random() * 6; // Slightly taller trunk
-    const trunk = new THREE.CylinderGeometry(0.8, 1, trunkHeight, 12);
-    const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-    const trunkMesh = new THREE.Mesh(trunk, trunkMaterial);
+        const branches = new THREE.Group();
+        const branchLevels = 5; // More levels for a bigger tree
+        const branchCount = 8 + Math.floor(Math.random() * 4); // 8-12 main branches
 
-    const branches = new THREE.Group();
-    const branchLevels = 5; // More levels for a bigger tree
-    const branchCount = 8 + Math.floor(Math.random() * 4); // 8-12 main branches
-
-    for (let i = 0; i < branchCount; i++) {
-        const branch = createBranch(1, branchLevels, trunkHeight * (0.5 + Math.random() * 0.4)); // Attach higher up the trunk
-        if (branch) {
-            branches.add(branch);
+        for (let i = 0; i < branchCount; i++) {
+            const branch = createBranch(1, branchLevels, trunkHeight * (0.5 + Math.random() * 0.4)); // Attach higher up the trunk
+            if (branch) {
+                branches.add(branch);
+            }
         }
+
+        const tree = new THREE.Group();
+        tree.add(trunkMesh);
+        tree.add(branches);
+        return tree;
     }
 
-    const tree = new THREE.Group();
-    tree.add(trunkMesh);
-    tree.add(branches);
-    return tree;
-}
-
-function placeTrees() {
     const trees = [];
-    const treeTypes = [createStaticTree, createStochasticTreeType1, createStochasticTreeType2, createComplexTree];
-    const minDistance = 25; // Minimum distance between trees
+    function placeTrees() {
+        const treeTypes = [createStaticTree, createStochasticTreeType1, createStochasticTreeType2, createComplexTree];
+        const minDistance = 25; // Minimum distance between trees
 
-    for (let i = 0; i < 100; i++) {
-        let x, z, y;
-        let tooClose;
+        for (let i = 0; i < 100; i++) {
+            let x, z, y;
+            let tooClose;
 
-        do {
-            // Generate random positions for the tree
-            x = Math.random() * terrainWidth - terrainWidth / 2;
-            z = Math.random() * terrainHeight - terrainHeight / 2;
-            y = getterrainBump(x, z);
+            do {
+                // Generate random positions for the tree
+                x = Math.random() * terrainWidth - terrainWidth / 2;
+                z = Math.random() * terrainHeight - terrainHeight / 2;
+                y = getterrainBump(x, z);
 
-            // Check if the new tree is too close to any existing tree
-            tooClose = trees.some(tree => {
-                const dx = tree.position.x - x;
-                const dz = tree.position.z - z;
-                const distance = Math.sqrt(dx * dx + dz * dz);
-                return distance < minDistance;
-            });
-        } while (tooClose); // Repeat if the tree is too close to another
+                // Check if the new tree is too close to any existing tree
+                tooClose = trees.some(tree => {
+                    const dx = tree.position.x - x;
+                    const dz = tree.position.z - z;
+                    const distance = Math.sqrt(dx * dx + dz * dz);
+                    return distance < minDistance;
+                });
+            } while (tooClose); // Repeat if the tree is too close to another
 
-        // Create the tree and set its position
-        const treeType = treeTypes[Math.floor(Math.random() * treeTypes.length)];
-        const tree = treeType();
-        tree.position.set(x, y, z);
+            // Create the tree and set its position
+            const treeType = treeTypes[Math.floor(Math.random() * treeTypes.length)];
+            const tree = treeType();
+            tree.position.set(x, y, z);
 
-        // Add the tree to the scene and the trees array
-        trees.push(tree);
-        scene.add(tree);
+            // Add the tree to the scene and the trees array
+            trees.push(tree);
+            scene.add(tree);
+        }
     }
-}
 
-// Place trees after terrain is generated
-placeTrees();
+    // Place trees after terrain is generated
+    placeTrees();
 
-        // Add Ambient Light to the scene
-        const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1); // white ambient light
-        scene.add(ambientLight);
+            // Add Ambient Light to the scene
+            const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1); // white ambient light
+            scene.add(ambientLight);
 
-        // Spotlight for User Flashlight
-        const flashlightColor = 0xFFFF00; // yellow color for Flashlight
-        const flashlightIntensity = 10000;
-        const flashlight = new THREE.SpotLight(flashlightColor, flashlightIntensity);
-        flashlight.position.set(camera.position.x, camera.position.y, camera.position.z);
-        flashlight.distance = 200; // flashlight distance
-        flashlight.angle = Math.PI / 6; // flashlight angle for flashlight circle 
-        flashlight.penumbra = 0.5; // keeps the edges of flashlight circle softer
-        scene.add(flashlight);
+            // Spotlight for User Flashlight
+            const flashlightColor = 0xFFFF00; // yellow color for Flashlight
+            const flashlightIntensity = 10000;
+            const flashlight = new THREE.SpotLight(flashlightColor, flashlightIntensity);
+            flashlight.position.set(camera.position.x, camera.position.y, camera.position.z);
+            flashlight.distance = 200; // flashlight distance
+            flashlight.angle = Math.PI / 6; // flashlight angle for flashlight circle 
+            flashlight.penumbra = 0.5; // keeps the edges of flashlight circle softer
+            scene.add(flashlight);
 
-        // Moving directions
-        const speed = 0.5; // Walking speed
-        let isMovingForward = false;
-        let isMovingBackward = false;
-        let isMovingLeft = false;
-        let isMovingRight = false;
-let rotationSpeed = 0.002; // Adjust this for sensitivity
+            // Moving directions
+            const speed = 0.5; // Walking speed
+            let isMovingForward = false;
+            let isMovingBackward = false;
+            let isMovingLeft = false;
+            let isMovingRight = false;
+    let rotationSpeed = 0.002; // Adjust this for sensitivity
 
-       let yaw = 0; // Horizontal rotation (left/right) 
-        let pitch = 0; // Vertical rotation (up/down)
-        const canvas = document.getElementById('myCanvas');
-canvas.addEventListener('click', () => {
-    canvas.requestPointerLock();
-});
-document.addEventListener("mousemove", (event) => {
-    if (document.pointerLockElement === canvas) { // Ensure pointer lock is active
-        yaw -= event.movementX * rotationSpeed;
-        pitch -= event.movementY * rotationSpeed;
+        let yaw = 0; // Horizontal rotation (left/right) 
+            let pitch = 0; // Vertical rotation (up/down)
+            const canvas = document.getElementById('myCanvas');
+    canvas.addEventListener('click', () => {
+        canvas.requestPointerLock();
+    });
+    document.addEventListener("mousemove", (event) => {
+        if (document.pointerLockElement === canvas) { // Ensure pointer lock is active
+            yaw -= event.movementX * rotationSpeed;
+            pitch -= event.movementY * rotationSpeed;
 
-        // Clamp pitch to prevent flipping the camera
-        pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+            // Clamp pitch to prevent flipping the camera
+            pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
 
-        const lookDirection = new THREE.Vector3(
-            Math.sin(yaw) * Math.cos(pitch),
-            Math.sin(pitch),
-            Math.cos(yaw) * Math.cos(pitch)
+            const lookDirection = new THREE.Vector3(
+                Math.sin(yaw) * Math.cos(pitch),
+                Math.sin(pitch),
+                Math.cos(yaw) * Math.cos(pitch)
+            );
+            camera.lookAt(camera.position.clone().add(lookDirection));
+        }
+    });
+
+    // Collision Detection so user cannot go through trees
+    function collisionDetection(nextXvalue, nextZvalue) {
+
+        // Iterate over all trees and check if the next user position will collide with a tree
+        for (let i = 0; i < trees.length; i++) {
+            const tree = trees[i];
+            const treePosition = tree.position;
+            
+            // Create a bounding box for the trees
+            const distance = Math.sqrt(Math.pow(nextXvalue - treePosition.x, 2) + Math.pow(nextZvalue - treePosition.z, 2));
+            
+            if (distance < 20) { // If distance between user and tree is less than 20 turn collision detection to true
+                return true; 
+            }
+        }
+        return false; // Keep off unless theres a collision
+    }
+
+    function updateCameraPosition() {
+        let nextXvalue = camera.position.x;
+        let nextZvalue = camera.position.z;
+
+        if (isMovingForward) {
+            nextXvalue += Math.sin(yaw) * speed;
+            nextZvalue += Math.cos(yaw) * speed;
+        }
+        if (isMovingBackward) {
+            nextXvalue -= Math.sin(yaw) * speed;
+            nextZvalue -= Math.cos(yaw) * speed;
+        }
+        if (isMovingLeft) {
+            nextXvalue += Math.cos(yaw) * speed;
+            nextZvalue -= Math.sin(yaw) * speed;
+        }
+        if (isMovingRight) {
+            nextXvalue -= Math.cos(yaw) * speed;
+            nextZvalue += Math.sin(yaw) * speed;
+        }
+
+        // Check if the new position collides with any tree
+        if (!collisionDetection(nextXvalue, nextZvalue)) {
+            
+            camera.position.x = nextXvalue;
+            camera.position.z = nextZvalue;
+
+            // Adjust camera height based on terrain
+            const terrainHeight = getterrainBump(camera.position.x, camera.position.z);
+            camera.position.y = terrainHeight + 25; // Keep the camera higher to emulate a person
+        }
+
+        // Copy flashlight position to the camera
+        flashlight.position.copy(camera.position);
+        flashlight.target.position.set(
+            camera.position.x + camera.getWorldDirection(new THREE.Vector3()).x * 10,
+            camera.position.y - 5,
+            camera.position.z + camera.getWorldDirection(new THREE.Vector3()).z * 10
         );
-        camera.lookAt(camera.position.clone().add(lookDirection));
+        flashlight.target.updateMatrixWorld();
     }
-});
-// Ensure camera moves and updates correctly
-function updateCameraPosition() {
-    if (isMovingForward) {
-        camera.position.x += Math.sin(yaw) * speed;
-        camera.position.z += Math.cos(yaw) * speed;
-    }
-    if (isMovingBackward) {
-        camera.position.x -= Math.sin(yaw) * speed;
-        camera.position.z -= Math.cos(yaw) * speed;
-    }
-    if (isMovingLeft) {
-        camera.position.x += Math.cos(yaw) * speed;
-        camera.position.z -= Math.sin(yaw) * speed;
-    }
-    if (isMovingRight) {
-        camera.position.x -= Math.cos(yaw) * speed;
-        camera.position.z += Math.sin(yaw) * speed;
-    }
-
-    // Adjust camera height based on terrain
-    const terrainHeight = getterrainBump(camera.position.x, camera.position.z);
-    camera.position.y = terrainHeight + 25; // Keep the camera at an appropriate height
-
-    // Copy flashlight position to the camera
-    flashlight.position.copy(camera.position);
-    flashlight.target.position.set(
-        camera.position.x + camera.getWorldDirection(new THREE.Vector3()).x * 10,
-        camera.position.y - 5,
-        camera.position.z + camera.getWorldDirection(new THREE.Vector3()).z * 10
-    );
-    flashlight.target.updateMatrixWorld();
-}
-
 
         // Turn key to true when pressed down
         window.addEventListener("keydown", (event) => {
@@ -392,8 +417,8 @@ function updateCameraPosition() {
             }
         }
 
-        // Code for Sun
-        const color = 0xFFFFFF;
+         // Code for Sun
+         const color = 0xFFFFFF;
         const intensity = 3;
         const sun = new THREE.DirectionalLight(color, intensity);
         sun.position.set(0, 10, 0);
