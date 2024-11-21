@@ -413,45 +413,70 @@
             }
         }
 
-         // Code for Sun
-         const color = 0xFFFFFF;
-        const intensity = 4;
-        const sun = new THREE.DirectionalLight(color, intensity);
+        // Create Sun
+        const sunColor = 0xFFFFFF; // White color
+        const sunIntensity = 4;
+        const sun = new THREE.DirectionalLight(sunColor, sunIntensity);
         sun.position.set(0, 10, 0);
-        sun.target.position.set(-5, 0, 0);
-        scene.add(sun); // Add sun to the scene
-        scene.add(sun.target); // Add the light target to the scene as well if needed
+        scene.add(sun);
 
-        //starting angle
-        var angle = 0;
+        // Create Moon
+        const moonColor = 0x1a2b4c; // Bluish color
+        const moonIntensity = 1;
+        const moon = new THREE.PointLight(moonColor, moonIntensity, 100);
+        moon.position.set(0, -10, 0); // Start opposite of sun
+        scene.add(moon);
 
-        function deltaTime() {
-            angle += ((15 * Math.PI/180)/10);
+        let angle = 0;
+        const rotationCycleSpeed = (15 * Math.PI) / 180 / 10; // 15 degrees every 10 seconds
+        const radius = 200; 
 
-            const radius = 10;
-            const deltaX = sun.position.x + Math.cos(angle) * radius;
-            const deltaY = sun.position.y + Math.sin(angle) * radius;
-            sun.position.set(deltaX, deltaY, 0);
+        function updateSunAndMoon(delta) {
+            angle += rotationCycleSpeed * delta;
 
-            const cycle = (deltaY + radius)/(2 * radius);
-            const sunColor = new THREE.Color();
-            color.setHSL(0.1 * cycle, 1, 0.5);
-            sun.sunColor = sunColor;
+            // Sun position
+            const sunX = Math.cos(angle) * radius;
+            const sunY = Math.sin(angle) * radius;
+            sun.position.set(sunX, sunY, 0);
 
-            requestAnimationFrame(deltaTime);
+            // Moon position
+            const moonX = Math.cos(angle + Math.PI) * radius;
+            const moonY = Math.sin(angle + Math.PI) * radius;
+            moon.position.set(moonX, moonY, 0);
+
+            const sunCycle = Math.max(0, Math.sin(angle)); 
+            const moonCycle = Math.max(0, Math.sin(angle + Math.PI)); 
+
+            sun.intensity = sunCycle * 4; // Max intensity during the day
+            moon.intensity = moonCycle * 1; // Max intensity during the night
         }
 
-        //deltaTime();
+        function updateBackgroundColor() {
+            const dayColor = new THREE.Color(0x87ceeb); // Light blue
+            const nightColor = new THREE.Color(0x001933); // Dark blue
 
+            const cycle = (Math.sin(angle) + 1) / 2; 
+            const currentColor = dayColor.clone().lerp(nightColor, 1 - cycle);
+
+            scene.background = currentColor;
+        }
+
+        // Clock for delta time
+        const clock = new THREE.Clock();
+
+        // Main animation loop
         function animate() {
             requestAnimationFrame(animate);
 
-            updateCameraPosition();
-            
-            renderer.render(scene, camera); // render the scene and camera
+            const delta = clock.getDelta(); // Get time elapsed since last frame
+            updateSunAndMoon(delta); // Update sun and moon positions
+            updateBackgroundColor();
+
+            updateCameraPosition(); // Update camera position
+            renderer.render(scene, camera); // Render the scene
         }
 
-        animate(); // call animate function
+        animate();
     </script>
 </body>
 </html>
