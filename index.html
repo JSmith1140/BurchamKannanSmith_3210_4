@@ -280,10 +280,6 @@
     // Place trees after terrain is generated
     placeTrees();
 
-            // Add Ambient Light to the scene
-            const ambientLight = new THREE.AmbientLight(0xFFFFFF, 1); // white ambient light
-            scene.add(ambientLight);
-
             // Spotlight for User Flashlight
             const flashlightColor = 0xFFFF00; // yellow color for Flashlight
             const flashlightIntensity = 10000;
@@ -419,7 +415,7 @@
 
          // Code for Sun
          const color = 0xFFFFFF;
-        const intensity = 3;
+        const intensity = 4;
         const sun = new THREE.DirectionalLight(color, intensity);
         sun.position.set(0, 10, 0);
         sun.target.position.set(-5, 0, 0);
