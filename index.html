@@ -49,7 +49,7 @@
         // Terrain dimensions
         const terrainWidth = 1000;
         const terrainHeight = 1000;
-        const terrainSegments = 500;
+        const terrainSegments = 300;
         const terrainScale = 10;
 
         // Function to generate terrain using Perlin noise
@@ -482,66 +482,85 @@
             scene.background = currentColor;
         }
         
-       // Raycasting setup for object highlight
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2(0, 0); // Always centered in the middle of the screen
-let lastHighlighted = null;
+        const treeGroup = new THREE.Group();
+        trees.forEach(tree => treeGroup.add(tree)); // Add all tree objects to this group
+        scene.add(treeGroup);
 
-// Highlighting tree objects
-function highlightObject() {
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(scene.children, true); // Check all objects in the scene
+        // Raycasting setup for object highlight
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2(0, 0); // Always centered in the middle of the screen
+        let lastHighlighted = null;
 
-    // Reset the previous highlight
-    if (lastHighlighted) {
-        lastHighlighted.material.emissive = new THREE.Color(0x000000);
-        lastHighlighted = null;
-    }
+        // Function to remove highlighted part of Tree
+        function onKeyDown(event) {
+            if (event.key === 'r' || event.key === 'R') { // If R key is pressed
 
-    // Highlight the first intersected object (e.g., tree)
-    if (intersects.length > 0) {
-        const object = intersects[0].object;
-        if (object.material && object.material.emissive) {
-            object.material.emissive = new THREE.Color(0xff0000); // Red emissive color to highlight
-            lastHighlighted = object;
+                if (lastHighlighted) { // remove last highlighted from the scene
+
+                    lastHighlighted.parent.remove(lastHighlighted); 
+                    scene.remove(lastHighlighted); 
+                    lastHighlighted.material.emissive.set(0x000000); 
+                    lastHighlighted = null;
+                }
+            }
         }
-    }
-}
 
-// Create a circular highlight on terrain
-const highlightRadius = 10; // Radius of the highlight circle
-const highlightGeometry = new THREE.CircleGeometry(highlightRadius, 32);
-const highlightMaterial = new THREE.MeshBasicMaterial({
-    color: 0xffff00, // Yellow color for the circle
-    opacity: 0.5,
-    transparent: true,
-    side: THREE.DoubleSide,
-});
-const highlightCircle = new THREE.Mesh(highlightGeometry, highlightMaterial);
-highlightCircle.rotation.x = -Math.PI / 2; // Rotate to align with the ground
-highlightCircle.visible = false; // Initially hidden
-scene.add(highlightCircle);
+        // Event listener for R key
+        window.addEventListener('keydown', onKeyDown, false);
 
-// Raycasting setup for cursor hover over terrain
-const terrainMesh = scene.getObjectByName("terrain"); // Ensure terrain has a unique name in the scene
+        // Highlighting tree objects
+        function highlightObject() {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(treeGroup.children, true);
 
-function updateHighlightCircle() {
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObject(terrain); // Raycast to terrain
+            if (lastHighlighted) {
+                lastHighlighted.material.emissive.set(0x000000); // Reset previous highlight
+                lastHighlighted = null;
+            }
 
-    // If the mouse is over the terrain, show the highlight circle
-    if (intersects.length > 0) {
-        const intersection = intersects[0];
-        highlightCircle.position.set(
-            intersection.point.x,
-            intersection.point.y + 0.01, // Slightly above the terrain to avoid clipping
-            intersection.point.z
-        );
-        highlightCircle.visible = true; // Show the highlight circle
-    } else {
-        highlightCircle.visible = false; // Hide the circle if not on terrain
-    }
-}
+            if (intersects.length > 0) {
+                const firstIntersect = intersects[0].object;
+                if (firstIntersect.material) {
+                    firstIntersect.material.emissive.set(0xff0000); // Highlight in red
+                    lastHighlighted = firstIntersect; // Track the highlighted object
+                }
+            }
+        }
+
+        // Create a circular highlight on terrain
+        const highlightRadius = 10; // Radius of the highlight circle
+        const highlightGeometry = new THREE.CircleGeometry(highlightRadius, 32);
+        const highlightMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffff00, // Yellow color for the circle
+            opacity: 0.5,
+            transparent: true,
+            side: THREE.DoubleSide,
+        });
+        const highlightCircle = new THREE.Mesh(highlightGeometry, highlightMaterial);
+        highlightCircle.rotation.x = -Math.PI / 2; // Rotate to align with the ground
+        highlightCircle.visible = false; // Initially hidden
+        scene.add(highlightCircle);
+
+        // Raycasting setup for cursor hover over terrain
+        const terrainMesh = scene.getObjectByName("terrain"); // Ensure terrain has a unique name in the scene
+
+        function updateHighlightCircle() {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(terrain); // Raycast to terrain
+
+            // If the mouse is over the terrain, show the highlight circle
+            if (intersects.length > 0) {
+                const intersection = intersects[0];
+                highlightCircle.position.set(
+                    intersection.point.x,
+                    intersection.point.y + 0.01, // Slightly above the terrain to avoid clipping
+                    intersection.point.z
+                );
+                highlightCircle.visible = true; // Show the highlight circle
+            } else {
+                highlightCircle.visible = false; // Hide the circle if not on terrain
+            }
+        }
 
         // Clock for delta time
         const clock = new THREE.Clock();
@@ -554,9 +573,9 @@ function updateHighlightCircle() {
             updateSunAndMoon(delta); // Update sun and moon positions
             updateBackgroundColor(); 
             updateCameraPosition(); // Update camera position
- highlightObject(); // Highlight objects (trees)
-    updateHighlightCircle(); // Update the highlight circle on the terrain
-         
+            highlightObject(); // Highlight objects (trees)
+            updateHighlightCircle(); // Update the highlight circle on the terrain
+                
             renderer.render(scene, camera); // Render the scene
         }
 
