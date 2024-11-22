@@ -552,10 +552,11 @@ function updateHighlightCircle() {
 
             const delta = clock.getDelta(); // Get time elapsed since last frame
             updateSunAndMoon(delta); // Update sun and moon positions
-            updateBackgroundColor();
+            updateBackgroundColor(); 
+            updateCameraPosition(); // Update camera position
  highlightObject(); // Highlight objects (trees)
     updateHighlightCircle(); // Update the highlight circle on the terrain
-            updateCameraPosition(); // Update camera position
+         
             renderer.render(scene, camera); // Render the scene
         }
 
