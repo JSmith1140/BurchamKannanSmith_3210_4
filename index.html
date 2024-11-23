@@ -42,7 +42,8 @@
         renderer.setClearColor(0x87CEEB);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
-
+        renderer.shadowMap.enabled = true;
+       
         // Initialize Perlin Noise
         noise.seed(Math.random());
 
@@ -93,6 +94,7 @@
             flatShading: true,
         });
         const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
+        terrain.receiveShadow = true;
         scene.add(terrain); // add terrain to scene
 
         function createBranch(level, maxLevel, parentHeight) {
@@ -108,6 +110,7 @@
         branchMesh.position.y = parentHeight / 2; // Position at parent's tip
         branchMesh.rotation.x = Math.random() * Math.PI / 3 - Math.PI / 6; // Slight upward/downward tilt
         branchMesh.rotation.z = Math.random() * Math.PI / 2 - Math.PI / 4; // Sideways rotation for variation
+        branchMesh.castShadow = true;
 
         // Add leaves to the branches
         addLeaves(branchMesh);
@@ -144,6 +147,7 @@
             leaf.position.z += (Math.random() - 0.5) * 5; 
             leaf.position.y += Math.random() * 3; 
 
+            leaf.castShadow = true; 
             // Add leaf to the branch
             branch.add(leaf);
         }
@@ -292,6 +296,13 @@
             const tree = treeType();
             tree.position.set(x, y, z);
 
+            tree.castShadow = true; 
+            tree.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true; 
+            }
+        });
+
             // Add the tree to the scene and the trees array
             trees.push(tree);
             scene.add(tree);
@@ -312,7 +323,7 @@
             scene.add(flashlight);
 
             // Moving directions
-            const speed = 0.5; // Walking speed
+            const speed = 0.7; // Walking speed
             let isMovingForward = false;
             let isMovingBackward = false;
             let isMovingLeft = false;
@@ -449,13 +460,23 @@
         const sunIntensity = 4;
         const sun = new THREE.DirectionalLight(sunColor, sunIntensity);
         sun.position.set(0, 10, 0);
+        sun.castShadow = true; 
+        sun.shadow.mapSize.width = 2048;
+        sun.shadow.mapSize.height = 2048;
+        sun.shadow.camera.near = 1;
+        sun.shadow.camera.far = 1000;
+        sun.shadow.camera.left = -500;
+        sun.shadow.camera.right = 500;
+        sun.shadow.camera.top = 500;
+        sun.shadow.camera.bottom = -500;  
         scene.add(sun);
-
+        
         // Create Moon
         const moonColor = 0x1a2b4c; // Bluish color
         const moonIntensity = 1;
         const moon = new THREE.PointLight(moonColor, moonIntensity, 100);
         moon.position.set(0, -10, 0); // Start opposite of sun
+        moon.castShadow = true;
         scene.add(moon);
 
         let angle = 0;
