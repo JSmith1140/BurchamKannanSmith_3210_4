@@ -360,25 +360,33 @@
         return false; // Keep off unless theres a collision
     }
 
+    let bobbingHeight = 3; // bobbing height
+    let bobbingSpeed = 5; // bobbing speed
+    let time = 0;
+
     function updateCameraPosition() {
         let nextXvalue = camera.position.x;
         let nextZvalue = camera.position.z;
-
+        
         if (isMovingForward) {
             nextXvalue += Math.sin(yaw) * speed;
             nextZvalue += Math.cos(yaw) * speed;
+            time += 0.05;
         }
         if (isMovingBackward) {
             nextXvalue -= Math.sin(yaw) * speed;
             nextZvalue -= Math.cos(yaw) * speed;
+            time += 0.05;   
         }
         if (isMovingLeft) {
             nextXvalue += Math.cos(yaw) * speed;
             nextZvalue -= Math.sin(yaw) * speed;
+            time += 0.05;  
         }
         if (isMovingRight) {
             nextXvalue -= Math.cos(yaw) * speed;
             nextZvalue += Math.sin(yaw) * speed;
+            time += 0.05;
         }
 
         // Check if the new position collides with any tree
@@ -389,7 +397,9 @@
 
             // Adjust camera height based on terrain
             const terrainHeight = getterrainBump(camera.position.x, camera.position.z);
-            camera.position.y = terrainHeight + 25; // Keep the camera higher to emulate a person
+            const bobbingEffect = Math.sin(time * bobbingSpeed) * bobbingHeight; 
+            camera.position.y = terrainHeight + 25 + bobbingEffect; // Keep the camera higher to emulate a person
+
         }
 
         // Copy flashlight position to the camera
